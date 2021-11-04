@@ -41,7 +41,7 @@ export class SQLiteStore<T extends SessionData = SessionData> extends EventEmitt
 	}
 
 	async get(sessionID: string): Promise<[SessionData, number]> {
-		const returned = this.client.prepare(`SELECT * FROM \`${this.tableName}\` WHERE sid = ${sessionID}`).all()[0]
+		const returned = this.client.prepare(`SELECT * FROM \`${this.tableName}\` WHERE sid = '${sessionID}'`).all()[0]
 		if (!returned) return null
 		if (returned.expiry < Date.now()) return null
 		return [JSON.parse(returned.data), Number(returned.expiry)]
@@ -49,18 +49,18 @@ export class SQLiteStore<T extends SessionData = SessionData> extends EventEmitt
 
 	async set(sessionID: string, data: SessionData, expiry?: number|null) {
 		const ttl = this.getTTL(expiry)
-		this.client.prepare(`INSERT INTO ${this.tableName} (sid, expiry, data) values (${sessionID}, ${ttl+Date.now()}, '${JSON.stringify(data)}')`).run()
+		this.client.prepare(`INSERT INTO \`${this.tableName}\` (sid, expiry, data) values ('${sessionID}', ${ttl+Date.now()}, '${JSON.stringify(data)}')`).run()
 		return
 	}
 
 	async destroy(sessionID: string) {
-		const data = this.client.exec(`DELETE FROM ${this.tableName} where sid = ${sessionID}`)
+		this.client.exec(`DELETE FROM ${this.tableName} where sid = '${sessionID}'`)
 		return
 	}
 
 	async touch(sessionID: String, expiry?: number | null) {
 		const ttl = this.getTTL(expiry)
-		const data = this.client.exec(`INSERT INTO ${this.tableName} (sid, expiry) values (${sessionID}, ${ttl+Date.now()})`)
+		this.client.exec(`INSERT INTO ${this.tableName} (sid, expiry) values ('${sessionID}', ${ttl+Date.now()})`)
 		return
 	}
 }
