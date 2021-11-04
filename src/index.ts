@@ -27,15 +27,13 @@ export class SQLiteStore<T extends SessionData = SessionData> extends EventEmitt
 		this.ttl = ttl
 		this.tableName = tableName
 
-		const prep = `CREATE TABLE ${this.tableName} (
+		const prep = `CREATE TABLE IF NOT EXISTS ${this.tableName} (
 			sid TEXT PRIMARY_KEY,
 			expiry NUMBER DEFAULT '${this.ttl}',
 			data TEXT
-		) IF NOT EXISTS`
+		)`
 		
-		try {
-			this.client.exec(prep)
-		} catch(e) {}
+		this.client.exec(prep)
 	}
 
 	private getTTL(expiry?: number|null) {
