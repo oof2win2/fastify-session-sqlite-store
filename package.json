@@ -3,18 +3,17 @@
   "version": "1.0.0",
   "description": "",
   "main": "dist/index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "types": "dist/index.d.ts",
+  "scripts": {},
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "oof2win2",
+  "license": "MIT",
   "dependencies": {
     "@mgcrea/fastify-session": "^0.14.2",
-    "@types/events": "^3.0.0",
     "better-sqlite3": "^7.4.4"
   },
   "devDependencies": {
-    "@types/better-sqlite3": "^7.4.1"
+    "@types/better-sqlite3": "^7.4.1",
+    "@types/events": "^3.0.0"
   }
 }
