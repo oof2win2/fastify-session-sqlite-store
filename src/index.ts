@@ -28,7 +28,7 @@ export class SQLiteStore<T extends SessionData = SessionData> extends EventEmitt
 		this.tableName = tableName
 
 		const prep = `CREATE TABLE IF NOT EXISTS ${this.tableName} (
-			sid TEXT PRIMARY_KEY,
+			sid TEXT UNIQUE,
 			expiry NUMBER DEFAULT '${this.ttl}',
 			data TEXT
 		)`
@@ -49,7 +49,10 @@ export class SQLiteStore<T extends SessionData = SessionData> extends EventEmitt
 
 	async set(sessionID: string, data: SessionData, expiry?: number|null) {
 		const ttl = this.getTTL(expiry)
-		this.client.prepare(`INSERT INTO \`${this.tableName}\` (sid, expiry, data) values ('${sessionID}', ${ttl+Date.now()}, '${JSON.stringify(data)}')`).run()
+		console.log(`INSERT INTO \`${this.tableName}\` (sid, expiry, data) values ('${sessionID}', ${ttl+Date.now()}, '${JSON.stringify(data)}') ON CONFLICT (sid) DO UPDATE SET data='${JSON.stringify(data)}' expiry=${ttl+Date.now()};`)
+		const res = this.client.prepare(`INSERT INTO \`${this.tableName}\` (sid, expiry, data) values ('${sessionID}', ${ttl+Date.now()}, '${JSON.stringify(data)}')
+		ON CONFLICT (sid) DO UPDATE SET data='${JSON.stringify(data)}',expiry=${ttl+Date.now()};`).run()
+		console.log(res)
 		return
 	}
 
