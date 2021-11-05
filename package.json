@@ -4,7 +4,9 @@
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "scripts": {},
+  "scripts": {
+	  "test": "jest"
+  },
   "keywords": [],
   "author": "oof2win2",
   "license": "MIT",
@@ -14,6 +16,10 @@
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.4.1",
-    "@types/events": "^3.0.0"
+    "@types/events": "^3.0.0",
+    "@types/jest": "^27.0.2",
+    "jest": "^27.3.1",
+    "ts-jest": "^27.0.7",
+    "typescript": "^4.4.4"
   }
 }
