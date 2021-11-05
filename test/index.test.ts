@@ -48,4 +48,10 @@ describe("SQLiteStore", () => {
 		const res = await store.get("someKey")
 		expect(res).toBeNull()
 	})
+	it("Touch should not throw an error if key exists", async () => {
+		const store = new SQLiteStore({filename: ":memory:"})
+		await store.set("someKey", {hello: "world"})
+
+		expect(await store.touch("someKey")).toBeNull()
+	})
 })

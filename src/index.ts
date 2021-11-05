@@ -62,8 +62,8 @@ export class SQLiteStore<T extends SessionData = SessionData> extends EventEmitt
 				values ('${sessionID}', ${ttl+Date.now()}, '${JSON.stringify(data)}')
 			ON CONFLICT (sid) DO
 			UPDATE SET data='${JSON.stringify(data)}',expiry=${ttl+Date.now()}
-			;`).run()
-		return
+		;`).run()
+		return null
 	}
 	
 	/**
@@ -72,12 +72,12 @@ export class SQLiteStore<T extends SessionData = SessionData> extends EventEmitt
 	 */
 	async touch(sessionID: String, expiry?: number | null) {
 		const ttl = this.getTTL(expiry)
-		this.client.exec(`INSERT INTO ${this.tableName} (sid, expiry) values ('${sessionID}', ${ttl+Date.now()})`)
-		return
+		this.client.exec(`INSERT OR IGNORE INTO ${this.tableName} (sid, expiry) values ('${sessionID}', ${ttl+Date.now()})`)
+		return null
 	}
 
 	async destroy(sessionID: string) {
 		this.client.exec(`DELETE FROM ${this.tableName} where sid = '${sessionID}'`)
-		return
+		return null
 	}
 }
