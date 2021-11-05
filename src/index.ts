@@ -26,14 +26,12 @@ export class SQLiteStore<T extends SessionData = SessionData> extends EventEmitt
 		this.client = new Database(filename)
 		this.ttl = ttl
 		this.tableName = tableName
-
-		const prep = `CREATE TABLE IF NOT EXISTS ${this.tableName} (
+		
+		this.client.exec(`CREATE TABLE IF NOT EXISTS ${this.tableName} (
 			sid TEXT UNIQUE,
 			expiry NUMBER DEFAULT '${this.ttl}',
 			data TEXT
-		)`
-		
-		this.client.exec(prep)
+		)`)
 	}
 
 	private getTTL(expiry?: number|null) {
@@ -43,27 +41,43 @@ export class SQLiteStore<T extends SessionData = SessionData> extends EventEmitt
 	async get(sessionID: string): Promise<[SessionData, number]> {
 		const returned = this.client.prepare(`SELECT * FROM \`${this.tableName}\` WHERE sid = '${sessionID}'`).all()[0]
 		if (!returned) return null
-		if (returned.expiry < Date.now()) return null
+		// if the session is expired
+		if (returned.expiry < Date.now()) {
+			await this.destroy(sessionID)
+			return null
+		}
 		return [JSON.parse(returned.data), Number(returned.expiry)]
 	}
 
+	/**
+	 * 
+	 * @param expiry TTL, relative to epoch (Date.now() + X for X TTL)
+	 */
 	async set(sessionID: string, data: SessionData, expiry?: number|null) {
 		const ttl = this.getTTL(expiry)
-		console.log(`INSERT INTO \`${this.tableName}\` (sid, expiry, data) values ('${sessionID}', ${ttl+Date.now()}, '${JSON.stringify(data)}') ON CONFLICT (sid) DO UPDATE SET data='${JSON.stringify(data)}' expiry=${ttl+Date.now()};`)
-		const res = this.client.prepare(`INSERT INTO \`${this.tableName}\` (sid, expiry, data) values ('${sessionID}', ${ttl+Date.now()}, '${JSON.stringify(data)}')
-		ON CONFLICT (sid) DO UPDATE SET data='${JSON.stringify(data)}',expiry=${ttl+Date.now()};`).run()
-		console.log(res)
+		
+		// insert into db. if the session already exists, set it to the new data and prolong expiry
+		this.client.prepare(`
+			INSERT INTO \`${this.tableName}\` (sid, expiry, data)
+				values ('${sessionID}', ${ttl+Date.now()}, '${JSON.stringify(data)}')
+			ON CONFLICT (sid) DO
+			UPDATE SET data='${JSON.stringify(data)}',expiry=${ttl+Date.now()}
+			;`).run()
+		return
+	}
+	
+	/**
+	 * 
+	 * @param expiry TTL, relative to epoch (Date.now() + X for X TTL)
+	 */
+	async touch(sessionID: String, expiry?: number | null) {
+		const ttl = this.getTTL(expiry)
+		this.client.exec(`INSERT INTO ${this.tableName} (sid, expiry) values ('${sessionID}', ${ttl+Date.now()})`)
 		return
 	}
 
 	async destroy(sessionID: string) {
 		this.client.exec(`DELETE FROM ${this.tableName} where sid = '${sessionID}'`)
-		return
-	}
-
-	async touch(sessionID: String, expiry?: number | null) {
-		const ttl = this.getTTL(expiry)
-		this.client.exec(`INSERT INTO ${this.tableName} (sid, expiry) values ('${sessionID}', ${ttl+Date.now()})`)
 		return
 	}
 }
