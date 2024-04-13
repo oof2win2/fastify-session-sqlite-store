@@ -59,9 +59,9 @@ export class SQLiteStore<T extends SessionData = SessionData> extends EventEmitt
 		// insert into db. if the session already exists, set it to the new data and prolong expiry
 		this.client.prepare(`
 			INSERT INTO \`${this.tableName}\` (sid, expiry, data)
-				values ('${sessionID}', ${ttl+Date.now()}, '${JSON.stringify(data)}')
+				values ('${sessionID}', ${ttl*1000+Date.now()}, '${JSON.stringify(data)}')
 			ON CONFLICT (sid) DO
-			UPDATE SET data='${JSON.stringify(data)}',expiry=${ttl+Date.now()}
+			UPDATE SET data='${JSON.stringify(data)}',expiry=${ttl*1000+Date.now()}
 		;`).run()
 		return null
 	}
