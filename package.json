@@ -1,7 +1,7 @@
 {
   "name": "fastify-session-sqlite-store",
-  "version": "1.0.3",
-  "description": "",
+  "version": "1.0.4",
+  "description": "A fastify session store using sqlite",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
